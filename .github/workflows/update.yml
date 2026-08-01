@@ -1,0 +1,26 @@
+name: Daily Dashboard Update
+
+on:
+  schedule:
+    - cron: '0 21 * * *'  # 한국시간 오전 6시 (UTC 21:00)
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install yfinance requests
+      - name: Run update script
+        run: python updated_dashboard.py
+      - name: Push changes
+        run: |
+          git config user.name "junyeongnoh"
+          git config user.email "noh_junyeong@nojun-yeong-ui-MacBookPro"
+          git add dashboard.html
+          git diff --cached --quiet || git commit -m "auto update \$(date '+%Y-%m-%d')"
+          git push

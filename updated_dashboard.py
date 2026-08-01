@@ -42,7 +42,7 @@ def add_value(html, key, value, is_str=False):
 
 def main():
     today = datetime.today().strftime("%m/%d")
-    path = os.path.expanduser("~/Desktop/dashboard.html")
+    path = os.path.expanduser("./dashboard.html")
     y2, y5, y10 = get_rates()
     fx = get_fx()
     tga = get_tga()
