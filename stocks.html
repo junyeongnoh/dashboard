@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>개별 종목 대시보드</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      background:#0f1117; color:#e0e0e0;
+      font-family:'Helvetica Neue', sans-serif;
+      padding:24px;
+    }
+
+    /* 탭 */
+    .tab-bar { display:flex; gap:8px; margin-bottom:20px; border-bottom:1px solid #2a2d3a; padding-bottom:12px; }
+    .tab-bar a {
+      padding:8px 20px; border-radius:8px;
+      font-size:13px; font-weight:700; text-decoration:none;
+    }
+    .tab-bar .active { background:#42a5f5; color:#fff; }
+    .tab-bar .inactive { background:#1a1d27; color:#888; border:1px solid #2a2d3a; }
+
+    /* 헤더 */
+    .header { margin-bottom:20px; }
+    .header h1 { font-size:22px; color:#fff; margin-bottom:4px; }
+    .header p  { font-size:13px; color:#666; }
+
+    /* 종목 선택 바 */
+    .stock-bar {
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-bottom:24px;
+    }
+    .stock-btn {
+      padding:8px 18px; border-radius:8px;
+      background:#1a1d27; color:#888;
+      border:1px solid #2a2d3a;
+      font-size:13px; font-weight:700;
+      cursor:pointer; transition:all 0.2s;
+    }
+    .stock-btn:hover  { border-color:#42a5f5; color:#42a5f5; }
+    .stock-btn.active { background:#42a5f5; color:#fff; border-color:#42a5f5; }
+
+    /* 종목 입력 */
+    .search-bar {
+      display:flex; gap:8px; margin-bottom:24px;
+    }
+    .search-bar input {
+      background:#1a1d27; color:#fff;
+      border:1px solid #2a2d3a; border-radius:8px;
+      padding:8px 14px; font-size:13px; width:160px;
+    }
+    .search-bar input::placeholder { color:#555; }
+    .search-bar button {
+      padding:8px 16px; border-radius:8px;
+      background:#42a5f5; color:#fff;
+      border:none; font-size:13px;
+      font-weight:700; cursor:pointer;
+    }
+
+    /* 현재가 히어로 */
+    .hero {
+      background:#1a1d27; border:1px solid #2a2d3a;
+      border-radius:12px; padding:24px 28px;
+      margin-bottom:20px;
+      display:flex; align-items:center; gap:32px;
+    }
+    .hero .name  { font-size:20px; font-weight:700; color:#fff; margin-bottom:4px; }
+    .hero .code  { font-size:12px; color:#666; }
+    .hero .price { font-size:40px; font-weight:700; color:#fff; line-height:1; }
+    .hero .chg   { font-size:14px; margin-top:8px; }
+    .hero .divider { width:1px; height:60px; background:#2a2d3a; }
+    .up   { color:#ef5350; }
+    .down { color:#26a69a; }
+
+    /* 카드 행 */
+    .mini-cards {
+      display:grid; grid-template-columns:repeat(4,1fr);
+      gap:14px; margin-bottom:20px;
+    }
+    .mini-card {
+      background:#1a1d27; border:1px solid #2a2d3a;
+      border-radius:12px; padding:16px 18px;
+    }
+    .mini-card .mc-label { font-size:11px; color:#888; margin-bottom:6px; }
+    .mini-card .mc-val   { font-size:20px; font-weight:700; color:#fff; }
+
+    /* 차트 */
+    .chart-box {
+      background:#1a1d27; border:1px solid #2a2d3a;
+      border-radius:12px; padding:20px;
+      margin-bottom:20px;
+    }
+    .chart-title {
+      font-size:14px; font-weight:600; color:#ccc;
+      margin-bottom:14px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+
+    /* 로딩 */
+    .loading {
+      text-align:center; padding:60px;
+      color:#555; font-size:14px;
+    }
+    .spinner {
+      display:inline-block; width:24px; height:24px;
+      border:3px solid #2a2d3a;
+      border-top-color:#42a5f5;
+      border-radius:50%;
+      animation:spin 0.8s linear infinite;
+      margin-bottom:12px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .update-note { text-align:right; font-size:11px; color:#555; margin-top:14px; }
+  </style>
+</head>
+<body>
+
+<!-- 탭 네비게이션 -->
+<div class="tab-bar">
+  <a href="dashboard.html" class="inactive">📊 매크로 대시보드</a>
+  <a href="stocks.html"    class="active">🇰🇷 개별 종목</a>
+</div>
+
+<div class="header">
+  <h1>🇰🇷 개별 종목 대시보드</h1>
+  <p>키움 API 실시간 연동 — 현재가 및 일봉 차트</p>
+</div>
+
+<!-- 즐겨찾기 종목 버튼 -->
+<div class="stock-bar" id="stock-bar"></div>
+
+<!-- 직접 입력 검색 -->
+<div class="search-bar">
+  <input type="text" id="code-input" placeholder="종목코드 입력 (예: 005930)" maxlength="6"/>
+  <button onclick="loadByInput()">조회</button>
+</div>
+
+<!-- 현재가 히어로 -->
+<div class="hero" id="hero" style="display:none;">
+  <div>
+    <div class="name" id="hero-name">—</div>
+    <div class="code" id="hero-code">—</div>
+  </div>
+  <div class="divider"></div>
+  <div>
+    <div class="price" id="hero-price">—</div>
+    <div class="chg"   id="hero-chg"></div>
+  </div>
+</div>
+
+<!-- 미니 카드 (시가/고가/저가/거래량 자리) -->
+<div class="mini-cards" id="mini-cards" style="display:none;">
+  <div class="mini-card">
+    <div class="mc-label">📅 조회 기준</div>
+    <div class="mc-val" id="mc-date">—</div>
+  </div>
+  <div class="mini-card">
+    <div class="mc-label">📈 52주 최고</div>
+    <div class="mc-val" id="mc-high">—</div>
+  </div>
+  <div class="mini-card">
+    <div class="mc-label">📉 52주 최저</div>
+    <div class="mc-val" id="mc-low">—</div>
+  </div>
+  <div class="mini-card">
+    <div class="mc-label">🔄 최근 종가</div>
+    <div class="mc-val" id="mc-close">—</div>
+  </div>
+</div>
+
+<!-- 일봉 차트 -->
+<div class="chart-box" id="chart-section" style="display:none;">
+  <div class="chart-title">
+    📈 일봉 종가 차트 (최근 50일)
+    <span id="chart-label" style="font-size:13px; color:#42a5f5;"></span>
+  </div>
+  <canvas id="kChart" height="130"></canvas>
+</div>
+
+<!-- 로딩 -->
+<div class="loading" id="loading" style="display:none;">
+  <div class="spinner"></div>
+  <div>데이터를 불러오는 중...</div>
+</div>
+
+<p class="update-note" id="update-note" style="display:none;"></p>
+
+<script>
+  const NGROK = "https://여기에-본인-ngrok-주소.ngrok-free.app"; // ← 수정 필요
+
+  const FAVORITES = {
+    "005930": "삼성전자",
+    "000660": "SK하이닉스",
+    "035420": "NAVER",
+    "035720": "카카오",
+    "005380": "현대차",
+    "000270": "기아",
+    "051910": "LG화학"
+  };
+
+  let kChart = null;
+  let currentCode = null;
+
+  // 즐겨찾기 버튼 렌더링
+  function renderStockBar() {
+    const bar = document.getElementById("stock-bar");
+    bar.innerHTML = Object.entries(FAVORITES).map(([code, name]) =>
+      `<button class="stock-btn" id="btn-${code}" onclick="loadStock('${code}')">${name}</button>`
+    ).join("");
+  }
+
+  // 로딩 상태 토글
+  function setLoading(on) {
+    document.getElementById("loading").style.display = on ? "block" : "none";
+    if (on) {
+      document.getElementById("hero").style.display        = "none";
+      document.getElementById("mini-cards").style.display  = "none";
+      document.getElementById("chart-section").style.display = "none";
+    }
+  }
+
+  // 종목 로드 메인 함수
+  async function loadStock(code) {
+    currentCode = code;
+
+    // 버튼 활성화
+    document.querySelectorAll(".stock-btn").forEach(b => b.classList.remove("active"));
+    const btn = document.getElementById("btn-" + code);
+    if (btn) btn.classList.add("active");
+
+    setLoading(true);
+
+    try {
+      // 현재가 + 차트 동시 요청
+      const [priceRes, chartRes] = await Promise.all([
+        fetch(`${NGROK}/price/${code}`),
+        fetch(`${NGROK}/chart/${code}`)
+      ]);
+      const priceData = await priceRes.json();
+      const chartData = await chartRes.json();
+
+      setLoading(false);
+      renderHero(code, priceData);
+      renderMiniCards(chartData);
+      renderChart(code, priceData.name, chartData);
+
+      const now = new Date();
+      document.getElementById("update-note").textContent =
+        `※ 마지막 업데이트: \${now.toLocaleTimeString("ko-KR")}`;
+      document.getElementById("update-note").style.display = "block";
+
+    } catch (e) {
+      setLoading(false);
+      alert("서버 연결 실패. ngrok 주소와 키움 서버를 확인해 주세요.");
+      console.error(e);
+    }
+  }
+
+  // 현재가 히어로 렌더링
+  function renderHero(code, data) {
+    document.getElementById("hero-name").textContent  = data.name;
+    document.getElementById("hero-code").textContent  = code;
+    document.getElementById("hero-price").textContent = data.price.toLocaleString() + "원";
+    document.getElementById("hero").style.display     = "flex";
+  }
+
+  // 미니 카드 렌더링 (차트 데이터 기반)
+  function renderMiniCards(chartData) {
+    if (!chartData || chartData.length === 0) return;
+
+    const closes = chartData.map(d => d.y[3]);
+    const high52  = Math.max(...closes).toLocaleString() + "원";
+    const low52   = Math.min(...closes).toLocaleString() + "원";
+    const latest  = closes[0].toLocaleString() + "원";
+    const date    = chartData[0].x.replace(/(\d{4})(\d{2})(\d{2})/, "$1/$2/$3");
+
+    document.getElementById("mc-date").textContent  = date;
+    document.getElementById("mc-high").textContent  = high52;
+    document.getElementById("mc-low").textContent   = low52;
+    document.getElementById("mc-close").textContent = latest;
+    document.getElementById("mini-cards").style.display = "grid";
+  }
+
+  // 일봉 차트 렌더링
+  function renderChart(code, name, chartData) {
+    const labels = chartData.map(d =>
+      d.x.slice(4,6) + "/" + d.x.slice(6,8)
+    ).reverse();
+    const closes = chartData.map(d => d.y[3]).reverse();
+
+    if (kChart) kChart.destroy();
+
+    document.getElementById("chart-label").textContent = name;
+    document.getElementById("chart-section").style.display = "block";
+
+    kChart = new Chart(document.getElementById("kChart"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: name + " 종가",
+          data: closes,
+          borderColor: "#42a5f5",
+          backgroundColor: "rgba(66,165,245,0.08)",
+          borderWidth: 2,
+          pointRadius: 3,
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode:"index", intersect:false },
+        plugins: {
+          legend: { labels: { color:"#aaa", font:{ size:12 } } },
+          tooltip: {
+            backgroundColor: "#1a1d27",
+            borderColor: "#3a3d4a",
+            borderWidth: 1,
+            titleColor: "#fff",
+            bodyColor: "#ccc",
+            callbacks: {
+              label: ctx => ctx.dataset.label + ": " + ctx.parsed.y.toLocaleString() + "원"
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color:"#666", maxTicksLimit:12, font:{ size:11 } },
+            grid:  { color:"#2a2d3a" }
+          },
+          y: {
+            ticks: {
+              color:"#666", font:{ size:11 },
+              callback: v => v.toLocaleString()
+            },
+            grid: { color:"#2a2d3a" }
+          }
+        }
+      }
+    });
+  }
+
+  // 직접 입력 조회
+  function loadByInput() {
+    const code = document.getElementById("code-input").value.trim();
+    if (code.length !== 6 || isNaN(code)) {
+      alert("6자리 숫자 종목코드를 입력해 주세요.");
+      return;
+    }
+    loadStock(code);
+  }
+
+  // 엔터키 지원
+  document.getElementById("code-input").addEventListener("keydown", e => {
+    if (e.key === "Enter") loadByInput();
+  });
+
+  // 초기 실행
+  renderStockBar();
+  loadStock("005930"); // 기본 삼성전자
+</script>
+</body>
+</html>
