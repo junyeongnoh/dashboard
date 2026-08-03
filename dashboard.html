@@ -495,19 +495,20 @@ function evalSignals() {
   // 각 지표별 신호 판정 (green=2, yellow=1, red=0)
   const signals = [];
 
-  // 1. TGA: 하락 추세 = 유동성 공급 = 우호적
+// 1. TGA: 하락 추세 = 유동성 공급 = 우호적
   let tgaSig, tgaLabel, tgaComment;
   if (tgaTrend < -20) {
     tgaSig = "green"; tgaLabel = "우호적";
-    tgaComment = `TGA 잔고(${tga}B$)가 10일 평균 대비 ${Math.abs(tgaTrend.toFixed(0))}B$ 감소, 시중 유동성 공급 중`;
+    tgaComment = "TGA 잔고(" + tga + "B$)가 10일 평균 대비 " + Math.abs(Math.round(tgaTrend)) + "B$ 감소, 시중 유동성 공급 중";
   } else if (tgaTrend > 20) {
     tgaSig = "red"; tgaLabel = "주의";
-    tgaComment = `TGA 잔고(${tga}B$)가 10일 평균 대비 ${tgaTrend.toFixed(0)}B$ 증가, 유동성 흡수 압력`;
+    tgaComment = "TGA 잔고(" + tga + "B$)가 10일 평균 대비 " + Math.round(tgaTrend) + "B$ 증가, 유동성 흡수 압력";
   } else {
     tgaSig = "yellow"; tgaLabel = "중립";
-    tgaComment = `TGA 잔고(${tga}B$) 횡보 중, 유동성 방향성 불명확`;
+    tgaComment = "TGA 잔고(" + tga + "B$) 횡보 중, 유동성 방향성 불명확";
   }
   signals.push({ icon: "🏦", name: "TGA 잔고", val: tga + "B$", sig: tgaSig, label: tgaLabel, comment: tgaComment });
+
 
   // 2. 2년물: 낮을수록 우호적
   let y2Sig, y2Label, y2Comment;
