@@ -30,7 +30,19 @@
       border-radius: 12px;
       padding: 16px 18px;
     }
-    .card .label { font-size: 12px; color: #888; margin-bottom: 6px; }
+    .card .label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card .label .label-val {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
     .card .value { font-size: 22px; font-weight: 700; color: #fff; }
     .card .change { font-size: 12px; margin-top: 5px; }
     .up   { color: #ef5350; }
@@ -51,7 +63,20 @@
       padding: 20px;
     }
     .chart-box.full { grid-column: 1 / -1; }
-    .chart-title { font-size: 14px; font-weight: 600; color: #ccc; margin-bottom: 14px; }
+    .chart-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ccc;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chart-title .title-val {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
 
     /* 해석 가이드 */
     .guide {
@@ -95,37 +120,37 @@
 <!-- 요약 카드 -->
 <div class="cards">
   <div class="card">
-    <div class="label">🏦 TGA 잔고</div>
+    <div class="label">🏦 TGA 잔고 <span class="label-val" id="lv-tga"></span></div>
     <div class="value" id="card-tga">—</div>
     <div class="change" id="card-tga-chg"></div>
   </div>
   <div class="card">
-    <div class="label">📈 2년물 금리</div>
+    <div class="label">📈 2년물 금리 <span class="label-val" id="lv-2y"></span></div>
     <div class="value" id="card-2y">—</div>
     <div class="change" id="card-2y-chg"></div>
   </div>
   <div class="card">
-    <div class="label">📈 5년물 금리</div>
+    <div class="label">📈 5년물 금리 <span class="label-val" id="lv-5y"></span></div>
     <div class="value" id="card-5y">—</div>
     <div class="change" id="card-5y-chg"></div>
   </div>
   <div class="card">
-    <div class="label">📈 10년물 금리</div>
+    <div class="label">📈 10년물 금리 <span class="label-val" id="lv-10y"></span></div>
     <div class="value" id="card-10y">—</div>
     <div class="change" id="card-10y-chg"></div>
   </div>
   <div class="card">
-    <div class="label">💱 USD/KRW</div>
+    <div class="label">💱 USD/KRW <span class="label-val" id="lv-fx"></span></div>
     <div class="value" id="card-fx">—</div>
     <div class="change" id="card-fx-chg"></div>
   </div>
   <div class="card">
-    <div class="label">📉 HY Spread</div>
+    <div class="label">📉 HY Spread <span class="label-val" id="lv-hy"></span></div>
     <div class="value" id="card-hy">—</div>
     <div class="change" id="card-hy-chg"></div>
   </div>
   <div class="card">
-    <div class="label">🛢️ WTI 원유</div>
+    <div class="label">🛢️ WTI 원유 <span class="label-val" id="lv-wti"></span></div>
     <div class="value" id="card-wti">—</div>
     <div class="change" id="card-wti-chg"></div>
   </div>
@@ -134,27 +159,27 @@
 <!-- 차트 -->
 <div class="charts">
   <div class="chart-box">
-    <div class="chart-title">🏦 TGA 잔고 (십억 달러)</div>
+    <div class="chart-title" id="title-tga">🏦 TGA 잔고 (십억 달러)</div>
     <canvas id="chartTGA" height="200"></canvas>
   </div>
   <div class="chart-box">
-    <div class="chart-title">💱 USD/KRW 환율</div>
+    <div class="chart-title" id="title-fx">💱 USD/KRW 환율</div>
     <canvas id="chartFX" height="200"></canvas>
   </div>
   <div class="chart-box">
-    <div class="chart-title">📉 HY Spread (%)</div>
+    <div class="chart-title" id="title-hy">📉 HY Spread (%)</div>
     <canvas id="chartHY" height="200"></canvas>
   </div>
   <div class="chart-box">
-    <div class="chart-title">🛢️ WTI 원유 (USD)</div>
+    <div class="chart-title" id="title-wti">🛢️ WTI 원유 (USD)</div>
     <canvas id="chartWTI" height="200"></canvas>
   </div>
   <div class="chart-box full">
-    <div class="chart-title">📈 미국 국채 금리 — 2년물 / 5년물 / 10년물 (%)</div>
+    <div class="chart-title" id="title-rates">📈 미국 국채 금리 — 2년물 / 5년물 / 10년물 (%)</div>
     <canvas id="chartRates" height="110"></canvas>
   </div>
   <div class="chart-box full">
-    <div class="chart-title">📉 2Y–10Y 스프레드 (0 아래 = 역전 구간)</div>
+    <div class="chart-title" id="title-spread">📉 2Y–10Y 스프레드 (0 아래 = 역전 구간)</div>
     <canvas id="chartSpread" height="90"></canvas>
   </div>
 </div>
@@ -216,15 +241,6 @@
 <script>
 /* ================================================
    ★ 매일 여기에 데이터를 추가하세요 ★
-
-   dates : 날짜 (오래된 순 → 최신 순)
-   tga   : TGA 잔고 (단위: 십억 달러)
-   y2    : 2년물 금리 (%)
-   y5    : 5년물 금리 (%)
-   y10   : 10년물 금리 (%)
-   fx    : USD/KRW 환율
-   hy    : HY Spread (%)
-   wti   : WTI 원유 (USD)
 ================================================ */
 const DATA = {
   dates: [
@@ -291,7 +307,7 @@ const DATA = {
 const last = arr => arr[arr.length - 1];
 const prev = arr => arr[arr.length - 2];
 
-function setCard(valId, chgId, value, prevVal, unit, dec) {
+function setCard(valId, chgId, lvId, value, prevVal, unit, dec) {
   document.getElementById(valId).textContent = value.toFixed(dec) + unit;
   const diff = value - prevVal;
   const sign = diff > 0 ? "▲" : diff < 0 ? "▼" : "—";
@@ -299,15 +315,33 @@ function setCard(valId, chgId, value, prevVal, unit, dec) {
   const el   = document.getElementById(chgId);
   el.textContent = `${sign} \${Math.abs(diff).toFixed(dec)}${unit} 전일 대비`;
   el.className = "change " + cls;
+  const lv = document.getElementById(lvId);
+  if (lv) lv.textContent = value.toFixed(dec) + unit;
 }
 
-setCard("card-tga",  "card-tga-chg",  last(DATA.tga), prev(DATA.tga), "B$", 0);
-setCard("card-2y",   "card-2y-chg",   last(DATA.y2),  prev(DATA.y2),  "%",  2);
-setCard("card-5y",   "card-5y-chg",   last(DATA.y5),  prev(DATA.y5),  "%",  2);
-setCard("card-10y",  "card-10y-chg",  last(DATA.y10), prev(DATA.y10), "%",  2);
-setCard("card-fx",   "card-fx-chg",   last(DATA.fx),  prev(DATA.fx),  "₩",  0);
-setCard("card-hy",   "card-hy-chg",   last(DATA.hy),  prev(DATA.hy),  "%",  2);
-setCard("card-wti",  "card-wti-chg",  last(DATA.wti), prev(DATA.wti), "$",  2);
+setCard("card-tga",  "card-tga-chg",  "lv-tga",  last(DATA.tga), prev(DATA.tga), "B$", 0);
+setCard("card-2y",   "card-2y-chg",   "lv-2y",   last(DATA.y2),  prev(DATA.y2),  "%",  2);
+setCard("card-5y",   "card-5y-chg",   "lv-5y",   last(DATA.y5),  prev(DATA.y5),  "%",  2);
+setCard("card-10y",  "card-10y-chg",  "lv-10y",  last(DATA.y10), prev(DATA.y10), "%",  2);
+setCard("card-fx",   "card-fx-chg",   "lv-fx",   last(DATA.fx),  prev(DATA.fx),  "₩",  0);
+setCard("card-hy",   "card-hy-chg",   "lv-hy",   last(DATA.hy),  prev(DATA.hy),  "%",  2);
+setCard("card-wti",  "card-wti-chg",  "lv-wti",  last(DATA.wti), prev(DATA.wti), "$",  2);
+
+function setTitle(id, value, unit, dec) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const span = document.createElement("span");
+  span.className = "title-val";
+  span.textContent = value.toFixed(dec) + unit;
+  el.appendChild(span);
+}
+
+setTitle("title-tga",    last(DATA.tga),  "B$", 0);
+setTitle("title-fx",     last(DATA.fx),   "₩",  0);
+setTitle("title-hy",     last(DATA.hy),   "%",  2);
+setTitle("title-wti",    last(DATA.wti),  "$",  2);
+setTitle("title-rates",  last(DATA.y10),  "%",  2);
+setTitle("title-spread", +(last(DATA.y10) - last(DATA.y2)).toFixed(3), "%p", 3);
 
 const GRID_COLOR = "#2a2d3a";
 const TICK_COLOR = "#666";
