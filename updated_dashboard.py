@@ -4,10 +4,12 @@ import re
 from datetime import datetime
 import os
 
+FRED_API_KEY = "YOUR_FRED_API_KEY"  # ← 여기에 FRED API Key 입력
+
 def get_rates():
     print("금리 수집 중...")
-    y2 = round(yf.Ticker("^IRX").fast_info["lastPrice"], 2)
-    y5 = round(yf.Ticker("^FVX").fast_info["lastPrice"], 2)
+    y2  = round(yf.Ticker("^IRX").fast_info["lastPrice"], 2)
+    y5  = round(yf.Ticker("^FVX").fast_info["lastPrice"], 2)
     y10 = round(yf.Ticker("^TNX").fast_info["lastPrice"], 2)
     print(f"  2년물:{y2}  5년물:{y5}  10년물:{y10}")
     return y2, y5, y10
@@ -31,6 +33,24 @@ def get_tga():
     print(f"  TGA:{tga}B$")
     return tga
 
+def get_hy():
+    print("High Yield Spread 수집 중...")
+    url = (
+        f"https://api.stlouisfed.org/fred/series/observations"
+        f"?series_id=BAMLH0A0HYM2&sort_order=desc&limit=1"
+        f"&api_key={FRED_API_KEY}&file_type=json"
+    )
+    data = requests.get(url, timeout=10).json()
+    hy = round(float(data["observations"][0]["value"]), 2)
+    print(f"  HY Spread:{hy}%")
+    return hy
+
+def get_wti():
+    print("WTI 수집 중...")
+    wti = round(yf.Ticker("CL=F").fast_info["lastPrice"], 2)
+    print(f"  WTI:{wti}")
+    return wti
+
 def add_value(html, key, value, is_str=False):
     if value is None:
         return html
@@ -42,23 +62,27 @@ def add_value(html, key, value, is_str=False):
 
 def main():
     today = datetime.today().strftime("%m/%d")
-    path = os.path.expanduser("./dashboard.html")
+    path  = os.path.expanduser("./dashboard.html")
     y2, y5, y10 = get_rates()
-    fx = get_fx()
+    fx  = get_fx()
     tga = get_tga()
+    hy  = get_hy()
+    wti = get_wti()
     with open(path, "r", encoding="utf-8") as f:
         html = f.read()
     if '"' + today + '"' in html:
         print("오늘(" + today + ") 데이터가 이미 있습니다.")
         return
     html = add_value(html, "dates", today, is_str=True)
-    html = add_value(html, "tga", tga)
-    html = add_value(html, "y2", y2)
-    html = add_value(html, "y5", y5)
-    html = add_value(html, "y10", y10)
-    html = add_value(html, "fx", fx)
+    html = add_value(html, "tga",   tga)
+    html = add_value(html, "y2",    y2)
+    html = add_value(html, "y5",    y5)
+    html = add_value(html, "y10",   y10)
+    html = add_value(html, "fx",    fx)
+    html = add_value(html, "hy",    hy)
+    html = add_value(html, "wti",   wti)
     with open(path, "w", encoding="utf-8") as f:
         f.write(html)
-    print("완료! " + today + " 데이터 추가됨. 브라우저 새로고침(CMD+R) 하세요.")
+    print("완료! " + today + " 데이터 추가됨.")
 
 main()
