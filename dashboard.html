@@ -634,6 +634,7 @@ function renderEval() {
     circleColor = "#ef5350";
   }
 
+
   document.getElementById("score-num").textContent   = score;
   document.getElementById("score-title").textContent = title;
   document.getElementById("score-sub").textContent   = sub;
@@ -643,12 +644,13 @@ function renderEval() {
   const tagClass = { green: "et-green", yellow: "et-yellow", red: "et-red" };
   const tagText  = { green: "우호적", yellow: "중립", red: "주의" };
   const evalText = document.getElementById("eval-text");
-  evalText.innerHTML = signals.map(s => `
+    evalText.innerHTML = signals.map(s => `
     <div class="et-row">
       <span class="et-tag \${tagClass[s.sig]}">${tagText[s.sig]}</span>
       \${s.comment}
     </div>
   `).join("");
+
 }
 
 renderEval();
