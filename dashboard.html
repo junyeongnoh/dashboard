@@ -13,34 +13,10 @@
       font-family: 'Helvetica Neue', sans-serif;
       padding: 24px;
     }
-    <!-- 탭 네비게이션 -->
-<div style="
-  display:flex; gap:8px;
-  margin-bottom:20px;
-  border-bottom:1px solid #2a2d3a;
-  padding-bottom:12px;">
-  <a href="dashboard.html" style="
-    padding:8px 20px; border-radius:8px;
-    background:#42a5f5; color:#fff;
-    font-size:13px; font-weight:700;
-    text-decoration:none;">
-    📊 매크로 대시보드
-  </a>
-  <a href="stocks.html" style="
-    padding:8px 20px; border-radius:8px;
-    background:#1a1d27; color:#888;
-    border:1px solid #2a2d3a;
-    font-size:13px; font-weight:700;
-    text-decoration:none;">
-    🇰🇷 개별 종목
-  </a>
-</div>
-
     .header { margin-bottom: 24px; }
     .header h1 { font-size: 22px; color: #fff; margin-bottom: 4px; }
     .header p  { font-size: 13px; color: #666; }
 
-    /* 카드 */
     .cards {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -72,7 +48,6 @@
     .down { color: #26a69a; }
     .neu  { color: #888; }
 
-    /* 차트 */
     .charts {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -101,7 +76,6 @@
       color: #fff;
     }
 
-    /* ── 투자 환경 평가 섹션 ── */
     .eval-section {
       background: #1a1d27;
       border: 1px solid #2a2d3a;
@@ -115,7 +89,6 @@
       margin-bottom: 18px;
     }
 
-    /* 신호등 그리드 */
     .signal-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -143,7 +116,6 @@
     .sig-yellow { background: rgba(255,167,38,0.2);  color: #ffa726; }
     .sig-red    { background: rgba(239,83,80,0.2);   color: #ef5350; }
 
-    /* 종합 점수 */
     .score-row {
       display: flex;
       align-items: center;
@@ -187,7 +159,6 @@
       color: #888;
     }
 
-    /* 자동 텍스트 평가 */
     .eval-text {
       background: #0f1117;
       border-radius: 10px;
@@ -212,7 +183,6 @@
     .et-yellow { background: rgba(255,167,38,0.2);  color: #ffa726; }
     .et-red    { background: rgba(239,83,80,0.2);   color: #ef5350; }
 
-    /* 해석 가이드 */
     .guide {
       background: #1a1d27;
       border: 1px solid #2a2d3a;
@@ -246,12 +216,35 @@
 </head>
 <body>
 
+<!-- 탭 네비게이션 -->
+<div style="
+  display:flex; gap:8px;
+  margin-bottom:20px;
+  border-bottom:1px solid #2a2d3a;
+  padding-bottom:12px;">
+  <a href="dashboard.html" style="
+    padding:8px 20px; border-radius:8px;
+    background:#42a5f5; color:#fff;
+    font-size:13px; font-weight:700;
+    text-decoration:none;">
+    📊 매크로 대시보드
+  </a>
+  <a href="stocks.html" style="
+    padding:8px 20px; border-radius:8px;
+    background:#1a1d27; color:#888;
+    border:1px solid #2a2d3a;
+    font-size:13px; font-weight:700;
+    text-decoration:none;">
+    🇰🇷 개별 종목
+  </a>
+</div>
+
 <div class="header">
   <h1>📊 매크로 투자 대시보드</h1>
   <p>매일 시장 개장 전 체크하는 핵심 매크로 지표</p>
 </div>
 
-<!-- 투자 환경 평가 (맨 위) -->
+<!-- 투자 환경 평가 -->
 <div class="eval-section">
   <h2>🧭 현재 투자 환경 평가</h2>
   <div class="signal-grid" id="signal-grid"></div>
@@ -501,7 +494,6 @@ function evalSignals() {
 
   const signals = [];
 
-  // 1. TGA
   let tgaSig, tgaLabel, tgaComment;
   if (tgaTrend < -20) {
     tgaSig = "green"; tgaLabel = "우호적";
@@ -515,7 +507,6 @@ function evalSignals() {
   }
   signals.push({ icon: "🏦", name: "TGA 잔고", val: tga + "B$", sig: tgaSig, label: tgaLabel, comment: tgaComment });
 
-  // 2. 2년물
   let y2Sig, y2Label, y2Comment;
   if (y2 < 4.0) {
     y2Sig = "green"; y2Label = "우호적";
@@ -529,7 +520,6 @@ function evalSignals() {
   }
   signals.push({ icon: "📈", name: "2년물 금리", val: y2 + "%", sig: y2Sig, label: y2Label, comment: y2Comment });
 
-  // 3. 10년물
   let y10Sig, y10Label, y10Comment;
   if (y10 < 4.2) {
     y10Sig = "green"; y10Label = "우호적";
@@ -543,7 +533,6 @@ function evalSignals() {
   }
   signals.push({ icon: "📈", name: "10년물 금리", val: y10 + "%", sig: y10Sig, label: y10Label, comment: y10Comment });
 
-  // 4. 스프레드
   let spSig, spLabel, spComment;
   if (spread > 0.1) {
     spSig = "green"; spLabel = "정상화";
@@ -557,7 +546,6 @@ function evalSignals() {
   }
   signals.push({ icon: "📉", name: "2Y-10Y 스프레드", val: spread + "%p", sig: spSig, label: spLabel, comment: spComment });
 
-  // 5. 환율
   let fxSig, fxLabel, fxComment;
   if (fx < 1330) {
     fxSig = "green"; fxLabel = "원화 강세";
@@ -571,7 +559,6 @@ function evalSignals() {
   }
   signals.push({ icon: "💱", name: "USD/KRW", val: fx + "₩", sig: fxSig, label: fxLabel, comment: fxComment });
 
-  // 6. HY Spread
   let hySig, hyLabel, hyComment;
   if (hy < 3.5) {
     hySig = "green"; hyLabel = "안정";
@@ -585,7 +572,6 @@ function evalSignals() {
   }
   signals.push({ icon: "📉", name: "HY Spread", val: hy + "%", sig: hySig, label: hyLabel, comment: hyComment });
 
-  // 7. WTI
   let wtiSig, wtiLabel, wtiComment;
   if (wti < 70) {
     wtiSig = "green"; wtiLabel = "인플레 완화";
