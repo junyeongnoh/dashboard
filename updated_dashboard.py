@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 import os
 
-FRED_API_KEY = "YOUR_FRED_API_KEY"  # ← 여기에 FRED API Key 입력
+FRED_API_KEY = "aaad2f47ce9eece40220739c5545510c"  # ← 여기에 FRED API Key 입력
 
 def get_rates():
     print("금리 수집 중...")
