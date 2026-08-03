@@ -78,6 +78,117 @@
       color: #fff;
     }
 
+    /* ── 투자 환경 평가 섹션 ── */
+    .eval-section {
+      background: #1a1d27;
+      border: 1px solid #2a2d3a;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .eval-section h2 {
+      font-size: 15px;
+      color: #aaa;
+      margin-bottom: 18px;
+    }
+
+    /* 신호등 그리드 */
+    .signal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .signal-card {
+      background: #0f1117;
+      border-radius: 10px;
+      padding: 14px 10px;
+      text-align: center;
+      border: 1px solid #2a2d3a;
+    }
+    .signal-card .sig-icon { font-size: 22px; margin-bottom: 6px; }
+    .signal-card .sig-name { font-size: 11px; color: #888; margin-bottom: 4px; }
+    .signal-card .sig-val  { font-size: 13px; font-weight: 700; color: #fff; }
+    .signal-card .sig-label {
+      font-size: 10px;
+      margin-top: 5px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .sig-green  { background: rgba(38,166,154,0.2); color: #26a69a; }
+    .sig-yellow { background: rgba(255,167,38,0.2);  color: #ffa726; }
+    .sig-red    { background: rgba(239,83,80,0.2);   color: #ef5350; }
+
+    /* 종합 점수 */
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 20px;
+      padding: 18px 20px;
+      background: #0f1117;
+      border-radius: 10px;
+      border: 1px solid #2a2d3a;
+    }
+    .score-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 3px solid #26a69a;
+    }
+    .score-circle .sc-num {
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+    .score-circle .sc-label {
+      font-size: 10px;
+      color: #888;
+      margin-top: 2px;
+    }
+    .score-info .score-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .score-info .score-sub {
+      font-size: 12px;
+      color: #888;
+    }
+
+    /* 자동 텍스트 평가 */
+    .eval-text {
+      background: #0f1117;
+      border-radius: 10px;
+      padding: 16px 20px;
+      border: 1px solid #2a2d3a;
+      font-size: 13px;
+      line-height: 1.9;
+      color: #ccc;
+    }
+    .eval-text .et-row { margin-bottom: 6px; }
+    .eval-text .et-row:last-child { margin-bottom: 0; }
+    .et-tag {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 7px;
+      border-radius: 4px;
+      margin-right: 6px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+    .et-green  { background: rgba(38,166,154,0.2); color: #26a69a; }
+    .et-yellow { background: rgba(255,167,38,0.2);  color: #ffa726; }
+    .et-red    { background: rgba(239,83,80,0.2);   color: #ef5350; }
+
     /* 해석 가이드 */
     .guide {
       background: #1a1d27;
@@ -184,6 +295,29 @@
   </div>
 </div>
 
+<!-- 투자 환경 평가 -->
+<div class="eval-section">
+  <h2>🧭 현재 투자 환경 평가</h2>
+
+  <!-- 신호등 -->
+  <div class="signal-grid" id="signal-grid"></div>
+
+  <!-- 종합 점수 -->
+  <div class="score-row">
+    <div class="score-circle" id="score-circle">
+      <span class="sc-num" id="score-num">—</span>
+      <span class="sc-label">/ 100</span>
+    </div>
+    <div class="score-info">
+      <div class="score-title" id="score-title">—</div>
+      <div class="score-sub" id="score-sub">—</div>
+    </div>
+  </div>
+
+  <!-- 자동 텍스트 평가 -->
+  <div class="eval-text" id="eval-text"></div>
+</div>
+
 <!-- 해석 가이드 -->
 <div class="guide">
   <h2>📌 지표 해석 가이드</h2>
@@ -236,7 +370,7 @@
   </div>
 </div>
 
-<p class="update-note">※ update.py 실행 시 자동으로 데이터가 업데이트됩니다</p>
+<p class="update-note">※ updated_dashboard.py 실행 시 자동으로 데이터가 업데이트됩니다</p>
 
 <script>
 /* ================================================
@@ -306,6 +440,7 @@ const DATA = {
 ================================================ */
 const last = arr => arr[arr.length - 1];
 const prev = arr => arr[arr.length - 2];
+const avg  = arr => arr.reduce((a,b) => a+b, 0) / arr.length;
 
 function setCard(valId, chgId, lvId, value, prevVal, unit, dec) {
   document.getElementById(valId).textContent = value.toFixed(dec) + unit;
@@ -343,12 +478,190 @@ setTitle("title-wti",    last(DATA.wti),  "$",  2);
 setTitle("title-rates",  last(DATA.y10),  "%",  2);
 setTitle("title-spread", +(last(DATA.y10) - last(DATA.y2)).toFixed(3), "%p", 3);
 
+/* ================================================
+   투자 환경 평가 로직
+================================================ */
+function evalSignals() {
+  const tga    = last(DATA.tga);
+  const tgaPrev= prev(DATA.tga);
+  const y2     = last(DATA.y2);
+  const y10    = last(DATA.y10);
+  const fx     = last(DATA.fx);
+  const hy     = last(DATA.hy);
+  const wti    = last(DATA.wti);
+  const spread = +(y10 - y2).toFixed(3);
+  const tgaTrend = tga - avg(DATA.tga.slice(-10)); // 10일 평균 대비
+
+  // 각 지표별 신호 판정 (green=2, yellow=1, red=0)
+  const signals = [];
+
+  // 1. TGA: 하락 추세 = 유동성 공급 = 우호적
+  let tgaSig, tgaLabel, tgaComment;
+  if (tgaTrend < -20) {
+    tgaSig = "green"; tgaLabel = "우호적";
+    tgaComment = `TGA 잔고(${tga}B$)가 10일 평균 대비 \${Math.abs(tgaTrend.toFixed(0))}B$ 감소, 시중 유동성 공급 중`;
+  } else if (tgaTrend > 20) {
+    tgaSig = "red"; tgaLabel = "주의";
+    tgaComment = `TGA 잔고(${tga}B$)가 10일 평균 대비 \${tgaTrend.toFixed(0)}B$ 증가, 유동성 흡수 압력`;
+  } else {
+    tgaSig = "yellow"; tgaLabel = "중립";
+    tgaComment = `TGA 잔고(${tga}B$) 횡보 중, 유동성 방향성 불명확`;
+  }
+  signals.push({ icon: "🏦", name: "TGA 잔고", val: tga + "B$", sig: tgaSig, label: tgaLabel, comment: tgaComment });
+
+  // 2. 2년물: 낮을수록 우호적
+  let y2Sig, y2Label, y2Comment;
+  if (y2 < 4.0) {
+    y2Sig = "green"; y2Label = "우호적";
+    y2Comment = `2년물 금리(${y2}%) 4% 하회, 연준 피벗 기대 반영`;
+  } else if (y2 < 4.5) {
+    y2Sig = "yellow"; y2Label = "중립";
+    y2Comment = `2년물 금리(${y2}%) 4~4.5% 구간, 금리 방향성 주시 필요`;
+  } else {
+    y2Sig = "red"; y2Label = "부담";
+    y2Comment = `2년물 금리(${y2}%) 4.5% 상회, 긴축 장기화 우려`;
+  }
+  signals.push({ icon: "📈", name: "2년물 금리", val: y2 + "%", sig: y2Sig, label: y2Label, comment: y2Comment });
+
+  // 3. 10년물: 낮을수록 우호적
+  let y10Sig, y10Label, y10Comment;
+  if (y10 < 4.2) {
+    y10Sig = "green"; y10Label = "우호적";
+    y10Comment = `10년물 금리(${y10}%) 안정적, 밸류에이션 부담 완화`;
+  } else if (y10 < 4.6) {
+    y10Sig = "yellow"; y10Label = "중립";
+    y10Comment = `10년물 금리(${y10}%) 4.2~4.6% 구간, 성장주 밸류에이션 주의`;
+  } else {
+    y10Sig = "red"; y10Label = "부담";
+    y10Comment = `10년물 금리(${y10}%) 4.6% 상회, 고PER 종목 압박 심화`;
+  }
+  signals.push({ icon: "📈", name: "10년물 금리", val: y10 + "%", sig: y10Sig, label: y10Label, comment: y10Comment });
+
+  // 4. 스프레드: 양수(정상화) = 우호적
+  let spSig, spLabel, spComment;
+  if (spread > 0.1) {
+    spSig = "green"; spLabel = "정상화";
+    spComment = `2Y–10Y 스프레드(${spread}%p) 플러스 전환, 수익률 곡선 정상화 진행 중`;
+  } else if (spread > -0.1) {
+    spSig = "yellow"; spLabel = "중립";
+    spComment = `2Y–10Y 스프레드(${spread}%p) 제로 부근, 역전 해소 여부 확인 필요`;
+  } else {
+    spSig = "red"; spLabel = "역전";
+    spComment = `2Y–10Y 스프레드(${spread}%p) 역전 지속, 경기침체 선행 신호 유지`;
+  }
+  signals.push({ icon: "📉", name: "2Y–10Y 스프레드", val: spread + "%p", sig: spSig, label: spLabel, comment: spComment });
+
+  // 5. 환율: 낮을수록 우호적 (외국인 자금 유입 환경)
+  let fxSig, fxLabel, fxComment;
+  if (fx < 1330) {
+    fxSig = "green"; fxLabel = "원화 강세";
+    fxComment = `USD/KRW(${fx}₩) 1330 하회, 외국인 자금 유입 환경 우호적`;
+  } else if (fx < 1380) {
+    fxSig = "yellow"; fxLabel = "중립";
+    fxComment = `USD/KRW(${fx}₩) 1330~1380 구간, 환율 방향성 주시`;
+  } else {
+    fxSig = "red"; fxLabel = "원화 약세";
+    fxComment = `USD/KRW(${fx}₩) 1380 상회, 외국인 자금 이탈 우려`;
+  }
+  signals.push({ icon: "💱", name: "USD/KRW", val: fx + "₩", sig: fxSig, label: fxLabel, comment: fxComment });
+
+  // 6. HY Spread: 낮을수록 우호적
+  let hySig, hyLabel, hyComment;
+  if (hy < 3.5) {
+    hySig = "green"; hyLabel = "안정";
+    hyComment = `HY 스프레드(${hy}%) 3.5% 하회, 신용시장 안정 — 위험 선호 환경`;
+  } else if (hy < 5.0) {
+    hySig = "yellow"; hyLabel = "주의";
+    hyComment = `HY 스프레드(${hy}%) 3.5~5% 구간, 신용 리스크 점진적 확대`;
+  } else {
+    hySig = "red"; hyLabel = "위험";
+    hyComment = `HY 스프레드(${hy}%) 5% 상회, 신용시장 스트레스 — 위험 회피 국면`;
+  }
+  signals.push({ icon: "📉", name: "HY Spread", val: hy + "%", sig: hySig, label: hyLabel, comment: hyComment });
+
+  // 7. WTI: 중간 범위가 중립, 급등은 인플레 부담
+  let wtiSig, wtiLabel, wtiComment;
+  if (wti < 70) {
+    wtiSig = "green"; wtiLabel = "인플레 완화";
+    wtiComment = `WTI(${wti}$) 70달러 하회, 인플레 압력 완화 — 연준 피벗 기대 강화`;
+  } else if (wti < 85) {
+    wtiSig = "yellow"; wtiLabel = "중립";
+    wtiComment = `WTI(${wti}$) 70~85달러 구간, 인플레 영향 제한적`;
+  } else {
+    wtiSig = "red"; wtiLabel = "인플레 부담";
+    wtiComment = `WTI(${wti}$) 85달러 상회, 인플레 재점화 우려 — 긴축 장기화 리스크`;
+  }
+  signals.push({ icon: "🛢️", name: "WTI", val: wti + "$", sig: wtiSig, label: wtiLabel, comment: wtiComment });
+
+  return signals;
+}
+
+function renderEval() {
+  const signals = evalSignals();
+  const scoreMap = { green: 2, yellow: 1, red: 0 };
+  const totalScore = signals.reduce((acc, s) => acc + scoreMap[s.sig], 0);
+  const maxScore   = signals.length * 2;
+  const score      = Math.round((totalScore / maxScore) * 100);
+
+  // 신호등 렌더링
+  const grid = document.getElementById("signal-grid");
+  grid.innerHTML = signals.map(s => `
+    <div class="signal-card">
+      <div class="sig-icon">${s.icon}</div>
+      <div class="sig-name">${s.name}</div>
+      <div class="sig-val">${s.val}</div>
+      <span class="sig-label sig-${s.sig}">${s.label}</span>
+    </div>
+  `).join("");
+
+  // 종합 점수
+  const greenCount  = signals.filter(s => s.sig === "green").length;
+  const yellowCount = signals.filter(s => s.sig === "yellow").length;
+  const redCount    = signals.filter(s => s.sig === "red").length;
+
+  let title, sub, circleColor;
+  if (score >= 70) {
+    title = "✅ 투자 우호적 환경";
+    sub   = `${greenCount}개 지표 긍정 / \${yellowCount}개 중립 / \${redCount}개 부정 — 리스크 자산 비중 확대 고려 가능`;
+    circleColor = "#26a69a";
+  } else if (score >= 40) {
+    title = "⚠️ 중립 — 선별적 접근 필요";
+    sub   = `${greenCount}개 지표 긍정 / \${yellowCount}개 중립 / \${redCount}개 부정 — 방어적 포지션 유지하며 기회 탐색`;
+    circleColor = "#ffa726";
+  } else {
+    title = "🔴 위험 회피 국면";
+    sub   = `${greenCount}개 지표 긍정 / \${yellowCount}개 중립 / \${redCount}개 부정 — 현금 비중 확대 및 리스크 축소 권고`;
+    circleColor = "#ef5350";
+  }
+
+  document.getElementById("score-num").textContent   = score;
+  document.getElementById("score-title").textContent = title;
+  document.getElementById("score-sub").textContent   = sub;
+  document.getElementById("score-circle").style.borderColor = circleColor;
+
+  // 자동 텍스트 평가
+  const tagClass = { green: "et-green", yellow: "et-yellow", red: "et-red" };
+  const tagText  = { green: "우호적", yellow: "중립", red: "주의" };
+  const evalText = document.getElementById("eval-text");
+  evalText.innerHTML = signals.map(s => `
+    <div class="et-row">
+      <span class="et-tag \${tagClass[s.sig]}">${tagText[s.sig]}</span>
+      \${s.comment}
+    </div>
+  `).join("");
+}
+
+renderEval();
+
+/* ================================================
+   차트
+================================================ */
 const GRID_COLOR = "#2a2d3a";
 const TICK_COLOR = "#666";
 const TOOLTIP_BG = "#1a1d27";
-
 const WINDOW = 130;
 const sliceData = arr => arr.slice(-WINDOW);
+
 const baseOptions = (yLabel) => ({
   responsive: true,
   interaction: { mode: "index", intersect: false },
@@ -375,7 +688,6 @@ const baseOptions = (yLabel) => ({
   }
 });
 
-// TGA 차트
 new Chart(document.getElementById("chartTGA"), {
   type: "line",
   data: {
@@ -385,16 +697,12 @@ new Chart(document.getElementById("chartTGA"), {
       data: sliceData(DATA.tga),
       borderColor: "#42a5f5",
       backgroundColor: "rgba(66,165,245,0.08)",
-      borderWidth: 2,
-      pointRadius: 3,
-      fill: true,
-      tension: 0.3
+      borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3
     }]
   },
   options: baseOptions("십억 달러")
 });
 
-// 환율 차트
 new Chart(document.getElementById("chartFX"), {
   type: "line",
   data: {
@@ -404,16 +712,12 @@ new Chart(document.getElementById("chartFX"), {
       data: sliceData(DATA.fx),
       borderColor: "#ab47bc",
       backgroundColor: "rgba(171,71,188,0.08)",
-      borderWidth: 2,
-      pointRadius: 3,
-      fill: true,
-      tension: 0.3
+      borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3
     }]
   },
   options: baseOptions("원(₩)")
 });
 
-// HY Spread 차트
 new Chart(document.getElementById("chartHY"), {
   type: "line",
   data: {
@@ -423,16 +727,12 @@ new Chart(document.getElementById("chartHY"), {
       data: sliceData(DATA.hy),
       borderColor: "#ef5350",
       backgroundColor: "rgba(239,83,80,0.08)",
-      borderWidth: 2,
-      pointRadius: 3,
-      fill: true,
-      tension: 0.3
+      borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3
     }]
   },
   options: baseOptions("%")
 });
 
-// WTI 차트
 new Chart(document.getElementById("chartWTI"), {
   type: "line",
   data: {
@@ -442,54 +742,25 @@ new Chart(document.getElementById("chartWTI"), {
       data: sliceData(DATA.wti),
       borderColor: "#ffa726",
       backgroundColor: "rgba(255,167,38,0.08)",
-      borderWidth: 2,
-      pointRadius: 3,
-      fill: true,
-      tension: 0.3
+      borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3
     }]
   },
   options: baseOptions("USD")
 });
 
-// 금리 3종 차트
 new Chart(document.getElementById("chartRates"), {
   type: "line",
   data: {
     labels: sliceData(DATA.dates),
     datasets: [
-      {
-        label: "2년물",
-        data: sliceData(DATA.y2),
-        borderColor: "#26a69a",
-        backgroundColor: "transparent",
-        borderWidth: 2,
-        pointRadius: 2,
-        tension: 0.3
-      },
-      {
-        label: "5년물",
-        data: sliceData(DATA.y5),
-        borderColor: "#ffa726",
-        backgroundColor: "transparent",
-        borderWidth: 2,
-        pointRadius: 2,
-        tension: 0.3
-      },
-      {
-        label: "10년물",
-        data: sliceData(DATA.y10),
-        borderColor: "#ef5350",
-        backgroundColor: "transparent",
-        borderWidth: 2,
-        pointRadius: 2,
-        tension: 0.3
-      }
+      { label: "2년물",  data: sliceData(DATA.y2),  borderColor: "#26a69a", backgroundColor: "transparent", borderWidth: 2, pointRadius: 2, tension: 0.3 },
+      { label: "5년물",  data: sliceData(DATA.y5),  borderColor: "#ffa726", backgroundColor: "transparent", borderWidth: 2, pointRadius: 2, tension: 0.3 },
+      { label: "10년물", data: sliceData(DATA.y10), borderColor: "#ef5350", backgroundColor: "transparent", borderWidth: 2, pointRadius: 2, tension: 0.3 }
     ]
   },
   options: baseOptions("%")
 });
 
-// 스프레드 차트
 const y10s = sliceData(DATA.y10);
 const y2s  = sliceData(DATA.y2);
 const spreadData = y10s.map((v, i) => +(v - y2s[i]).toFixed(3));
@@ -505,13 +776,7 @@ new Chart(document.getElementById("chartSpread"), {
       borderWidth: 1
     }]
   },
-  options: {
-    ...baseOptions("%p"),
-    plugins: {
-      ...baseOptions("%p").plugins,
-      annotation: {}
-    }
-  }
+  options: baseOptions("%p")
 });
 </script>
 </body>
