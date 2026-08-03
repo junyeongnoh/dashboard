@@ -122,4 +122,363 @@
   <div class="card">
     <div class="label">📉 HY Spread</div>
     <div class="value" id="card-hy">—</div>
-    <div cl
+    <div class="change" id="card-hy-chg"></div>
+  </div>
+  <div class="card">
+    <div class="label">🛢️ WTI 원유</div>
+    <div class="value" id="card-wti">—</div>
+    <div class="change" id="card-wti-chg"></div>
+  </div>
+</div>
+
+<!-- 차트 -->
+<div class="charts">
+  <div class="chart-box">
+    <div class="chart-title">🏦 TGA 잔고 (십억 달러)</div>
+    <canvas id="chartTGA" height="200"></canvas>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">💱 USD/KRW 환율</div>
+    <canvas id="chartFX" height="200"></canvas>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">📉 HY Spread (%)</div>
+    <canvas id="chartHY" height="200"></canvas>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">🛢️ WTI 원유 (USD)</div>
+    <canvas id="chartWTI" height="200"></canvas>
+  </div>
+  <div class="chart-box full">
+    <div class="chart-title">📈 미국 국채 금리 — 2년물 / 5년물 / 10년물 (%)</div>
+    <canvas id="chartRates" height="110"></canvas>
+  </div>
+  <div class="chart-box full">
+    <div class="chart-title">📉 2Y–10Y 스프레드 (0 아래 = 역전 구간)</div>
+    <canvas id="chartSpread" height="90"></canvas>
+  </div>
+</div>
+
+<!-- 해석 가이드 -->
+<div class="guide">
+  <h2>📌 지표 해석 가이드</h2>
+  <div class="guide-grid">
+    <div class="guide-item tag-tga">
+      <strong>TGA 잔고 ↑ 상승</strong>
+      정부가 세금 징수 or 국채 발행으로 현금 축적 중.<br>
+      시중 유동성 감소 → 주식시장 부담 가능성
+    </div>
+    <div class="guide-item tag-tga">
+      <strong>TGA 잔고 ↓ 하락</strong>
+      정부 지출 집행으로 시중에 돈이 풀리는 중.<br>
+      유동성 공급 → 단기적으로 주식시장 우호적
+    </div>
+    <div class="guide-item tag-rate">
+      <strong>2년물 금리 ↑</strong>
+      연준 금리 인상 기대 반영.<br>
+      성장주·기술주 밸류에이션에 민감하게 작용
+    </div>
+    <div class="guide-item tag-rate">
+      <strong>10년물 금리 ↑</strong>
+      장기 성장 기대 or 인플레 우려 반영.<br>
+      고PER 종목 밸류에이션 압박 요인
+    </div>
+    <div class="guide-item tag-rate">
+      <strong>2Y–10Y 스프레드 역전</strong>
+      단기금리 > 장기금리 = 수익률 곡선 역전.<br>
+      역사적으로 경기침체 선행 지표로 해석
+    </div>
+    <div class="guide-item tag-fx">
+      <strong>USD/KRW ↑ 원화 약세</strong>
+      수출주(반도체·자동차) 유리할 수 있으나<br>
+      외국인 자금 이탈 여부 함께 점검 필요
+    </div>
+    <div class="guide-item tag-hy">
+      <strong>HY Spread ↑ 확대</strong>
+      투자자들의 위험 회피 심리 강화.<br>
+      신용 스트레스 신호 → 주식시장 하락 선행 가능
+    </div>
+    <div class="guide-item tag-hy">
+      <strong>HY Spread ↓ 축소</strong>
+      위험 선호 심리 강화, 신용시장 안정.<br>
+      주식시장 상승 환경에 우호적
+    </div>
+    <div class="guide-item tag-wti">
+      <strong>WTI ↑ 상승</strong>
+      인플레 압력 재부각 가능성.<br>
+      에너지주 유리 / 연준 긴축 장기화 우려 요인
+    </div>
+  </div>
+</div>
+
+<p class="update-note">※ update.py 실행 시 자동으로 데이터가 업데이트됩니다</p>
+
+<script>
+/* ================================================
+   ★ 매일 여기에 데이터를 추가하세요 ★
+
+   dates : 날짜 (오래된 순 → 최신 순)
+   tga   : TGA 잔고 (단위: 십억 달러)
+   y2    : 2년물 금리 (%)
+   y5    : 5년물 금리 (%)
+   y10   : 10년물 금리 (%)
+   fx    : USD/KRW 환율
+   hy    : HY Spread (%)
+   wti   : WTI 원유 (USD)
+================================================ */
+const DATA = {
+  dates: [
+    "07/01","07/02","07/03","07/07","07/08",
+    "07/09","07/10","07/11","07/14","07/15",
+    "07/16","07/17","07/18","07/21","07/22",
+    "07/23","07/24","07/25","07/28","07/29",
+    "07/30","07/31","08/01"
+  ],
+  tga: [
+    710, 698, 703, 720, 715,
+    708, 695, 680, 672, 665,
+    658, 671, 685, 692, 700,
+    688, 675, 660, 648, 635,
+    628, 620, 615
+  ],
+  y2: [
+    4.35, 4.33, 4.30, 4.28, 4.25,
+    4.27, 4.29, 4.31, 4.28, 4.25,
+    4.22, 4.20, 4.18, 4.21, 4.23,
+    4.25, 4.22, 4.19, 4.17, 4.15,
+    4.13, 4.11, 4.10
+  ],
+  y5: [
+    4.20, 4.18, 4.15, 4.13, 4.10,
+    4.12, 4.14, 4.16, 4.13, 4.10,
+    4.08, 4.06, 4.04, 4.07, 4.09,
+    4.11, 4.08, 4.05, 4.03, 4.01,
+    3.99, 3.97, 3.96
+  ],
+  y10: [
+    4.45, 4.43, 4.40, 4.38, 4.35,
+    4.37, 4.39, 4.41, 4.38, 4.35,
+    4.32, 4.30, 4.28, 4.31, 4.33,
+    4.35, 4.32, 4.29, 4.27, 4.25,
+    4.23, 4.21, 4.20
+  ],
+  fx: [
+    1378, 1382, 1375, 1370, 1365,
+    1368, 1372, 1376, 1373, 1370,
+    1367, 1364, 1361, 1364, 1367,
+    1370, 1367, 1364, 1361, 1358,
+    1355, 1352, 1350
+  ],
+  hy: [
+    3.20, 3.18, 3.22, 3.25, 3.21,
+    3.19, 3.23, 3.26, 3.24, 3.20,
+    3.18, 3.15, 3.17, 3.20, 3.22,
+    3.25, 3.23, 3.20, 3.18, 3.15,
+    3.13, 3.11, 3.10
+  ],
+  wti: [
+    82.5, 81.8, 83.2, 84.0, 83.5,
+    82.9, 81.5, 80.8, 79.5, 78.9,
+    79.8, 80.5, 81.2, 82.0, 81.5,
+    80.8, 79.5, 78.8, 77.5, 76.9,
+    77.5, 78.2, 78.8
+  ]
+};
+
+/* ================================================
+   이하 코드는 수정하지 않아도 됩니다
+================================================ */
+const last = arr => arr[arr.length - 1];
+const prev = arr => arr[arr.length - 2];
+
+function setCard(valId, chgId, value, prevVal, unit, dec) {
+  document.getElementById(valId).textContent = value.toFixed(dec) + unit;
+  const diff = value - prevVal;
+  const sign = diff > 0 ? "▲" : diff < 0 ? "▼" : "—";
+  const cls  = diff > 0 ? "up" : diff < 0 ? "down" : "neu";
+  const el   = document.getElementById(chgId);
+  el.textContent = `${sign} \${Math.abs(diff).toFixed(dec)}${unit} 전일 대비`;
+  el.className = "change " + cls;
+}
+
+setCard("card-tga",  "card-tga-chg",  last(DATA.tga), prev(DATA.tga), "B$", 0);
+setCard("card-2y",   "card-2y-chg",   last(DATA.y2),  prev(DATA.y2),  "%",  2);
+setCard("card-5y",   "card-5y-chg",   last(DATA.y5),  prev(DATA.y5),  "%",  2);
+setCard("card-10y",  "card-10y-chg",  last(DATA.y10), prev(DATA.y10), "%",  2);
+setCard("card-fx",   "card-fx-chg",   last(DATA.fx),  prev(DATA.fx),  "₩",  0);
+setCard("card-hy",   "card-hy-chg",   last(DATA.hy),  prev(DATA.hy),  "%",  2);
+setCard("card-wti",  "card-wti-chg",  last(DATA.wti), prev(DATA.wti), "$",  2);
+
+const GRID_COLOR = "#2a2d3a";
+const TICK_COLOR = "#666";
+const TOOLTIP_BG = "#1a1d27";
+
+const WINDOW = 130;
+const sliceData = arr => arr.slice(-WINDOW);
+const baseOptions = (yLabel) => ({
+  responsive: true,
+  interaction: { mode: "index", intersect: false },
+  plugins: {
+    legend: { labels: { color: "#aaa", boxWidth: 12, font: { size: 12 } } },
+    tooltip: {
+      backgroundColor: TOOLTIP_BG,
+      borderColor: "#3a3d4a",
+      borderWidth: 1,
+      titleColor: "#fff",
+      bodyColor: "#ccc"
+    }
+  },
+  scales: {
+    x: {
+      ticks: { color: TICK_COLOR, maxTicksLimit: 10, font: { size: 11 } },
+      grid:  { color: GRID_COLOR }
+    },
+    y: {
+      ticks: { color: TICK_COLOR, font: { size: 11 } },
+      grid:  { color: GRID_COLOR },
+      title: { display: true, text: yLabel, color: "#666", font: { size: 11 } }
+    }
+  }
+});
+
+// TGA 차트
+new Chart(document.getElementById("chartTGA"), {
+  type: "line",
+  data: {
+    labels: sliceData(DATA.dates),
+    datasets: [{
+      label: "TGA 잔고",
+      data: sliceData(DATA.tga),
+      borderColor: "#42a5f5",
+      backgroundColor: "rgba(66,165,245,0.08)",
+      borderWidth: 2,
+      pointRadius: 3,
+      fill: true,
+      tension: 0.3
+    }]
+  },
+  options: baseOptions("십억 달러")
+});
+
+// 환율 차트
+new Chart(document.getElementById("chartFX"), {
+  type: "line",
+  data: {
+    labels: sliceData(DATA.dates),
+    datasets: [{
+      label: "USD/KRW",
+      data: sliceData(DATA.fx),
+      borderColor: "#ab47bc",
+      backgroundColor: "rgba(171,71,188,0.08)",
+      borderWidth: 2,
+      pointRadius: 3,
+      fill: true,
+      tension: 0.3
+    }]
+  },
+  options: baseOptions("원(₩)")
+});
+
+// HY Spread 차트
+new Chart(document.getElementById("chartHY"), {
+  type: "line",
+  data: {
+    labels: sliceData(DATA.dates),
+    datasets: [{
+      label: "HY Spread",
+      data: sliceData(DATA.hy),
+      borderColor: "#ef5350",
+      backgroundColor: "rgba(239,83,80,0.08)",
+      borderWidth: 2,
+      pointRadius: 3,
+      fill: true,
+      tension: 0.3
+    }]
+  },
+  options: baseOptions("%")
+});
+
+// WTI 차트
+new Chart(document.getElementById("chartWTI"), {
+  type: "line",
+  data: {
+    labels: sliceData(DATA.dates),
+    datasets: [{
+      label: "WTI",
+      data: sliceData(DATA.wti),
+      borderColor: "#ffa726",
+      backgroundColor: "rgba(255,167,38,0.08)",
+      borderWidth: 2,
+      pointRadius: 3,
+      fill: true,
+      tension: 0.3
+    }]
+  },
+  options: baseOptions("USD")
+});
+
+// 금리 3종 차트
+new Chart(document.getElementById("chartRates"), {
+  type: "line",
+  data: {
+    labels: sliceData(DATA.dates),
+    datasets: [
+      {
+        label: "2년물",
+        data: sliceData(DATA.y2),
+        borderColor: "#26a69a",
+        backgroundColor: "transparent",
+        borderWidth: 2,
+        pointRadius: 2,
+        tension: 0.3
+      },
+      {
+        label: "5년물",
+        data: sliceData(DATA.y5),
+        borderColor: "#ffa726",
+        backgroundColor: "transparent",
+        borderWidth: 2,
+        pointRadius: 2,
+        tension: 0.3
+      },
+      {
+        label: "10년물",
+        data: sliceData(DATA.y10),
+        borderColor: "#ef5350",
+        backgroundColor: "transparent",
+        borderWidth: 2,
+        pointRadius: 2,
+        tension: 0.3
+      }
+    ]
+  },
+  options: baseOptions("%")
+});
+
+// 스프레드 차트
+const y10s = sliceData(DATA.y10);
+const y2s  = sliceData(DATA.y2);
+const spreadData = y10s.map((v, i) => +(v - y2s[i]).toFixed(3));
+new Chart(document.getElementById("chartSpread"), {
+  type: "bar",
+  data: {
+    labels: sliceData(DATA.dates),
+    datasets: [{
+      label: "2Y–10Y 스프레드",
+      data: spreadData,
+      backgroundColor: spreadData.map(v => v >= 0 ? "rgba(38,166,154,0.6)" : "rgba(239,83,80,0.6)"),
+      borderColor:     spreadData.map(v => v >= 0 ? "#26a69a" : "#ef5350"),
+      borderWidth: 1
+    }]
+  },
+  options: {
+    ...baseOptions("%p"),
+    plugins: {
+      ...baseOptions("%p").plugins,
+      annotation: {}
+    }
+  }
+});
+</script>
+</body>
+</html>
