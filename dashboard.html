@@ -448,7 +448,7 @@ function setCard(valId, chgId, lvId, value, prevVal, unit, dec) {
   const sign = diff > 0 ? "▲" : diff < 0 ? "▼" : "—";
   const cls  = diff > 0 ? "up" : diff < 0 ? "down" : "neu";
   const el   = document.getElementById(chgId);
-  el.textContent = `${sign} \${Math.abs(diff).toFixed(dec)}${unit} 전일 대비`;
+  el.textContent = `${sign} ${Math.abs(diff).toFixed(dec)}${unit} 전일 대비`;
   el.className = "change " + cls;
   const lv = document.getElementById(lvId);
   if (lv) lv.textContent = value.toFixed(dec) + unit;
@@ -499,10 +499,10 @@ function evalSignals() {
   let tgaSig, tgaLabel, tgaComment;
   if (tgaTrend < -20) {
     tgaSig = "green"; tgaLabel = "우호적";
-    tgaComment = `TGA 잔고(${tga}B$)가 10일 평균 대비 \${Math.abs(tgaTrend.toFixed(0))}B$ 감소, 시중 유동성 공급 중`;
+    tgaComment = `TGA 잔고(${tga}B$)가 10일 평균 대비 ${Math.abs(tgaTrend.toFixed(0))}B$ 감소, 시중 유동성 공급 중`;
   } else if (tgaTrend > 20) {
     tgaSig = "red"; tgaLabel = "주의";
-    tgaComment = `TGA 잔고(${tga}B$)가 10일 평균 대비 \${tgaTrend.toFixed(0)}B$ 증가, 유동성 흡수 압력`;
+    tgaComment = `TGA 잔고(${tga}B$)가 10일 평균 대비 ${tgaTrend.toFixed(0)}B$ 증가, 유동성 흡수 압력`;
   } else {
     tgaSig = "yellow"; tgaLabel = "중립";
     tgaComment = `TGA 잔고(${tga}B$) 횡보 중, 유동성 방향성 불명확`;
@@ -622,15 +622,15 @@ function renderEval() {
   let title, sub, circleColor;
   if (score >= 70) {
     title = "✅ 투자 우호적 환경";
-    sub   = `${greenCount}개 지표 긍정 / \${yellowCount}개 중립 / \${redCount}개 부정 — 리스크 자산 비중 확대 고려 가능`;
+    sub   = `${greenCount}개 지표 긍정 / ${yellowCount}개 중립 / ${redCount}개 부정 — 리스크 자산 비중 확대 고려 가능`;
     circleColor = "#26a69a";
   } else if (score >= 40) {
     title = "⚠️ 중립 — 선별적 접근 필요";
-    sub   = `${greenCount}개 지표 긍정 / \${yellowCount}개 중립 / \${redCount}개 부정 — 방어적 포지션 유지하며 기회 탐색`;
+    sub   = `${greenCount}개 지표 긍정 / ${yellowCount}개 중립 / ${redCount}개 부정 — 방어적 포지션 유지하며 기회 탐색`;
     circleColor = "#ffa726";
   } else {
     title = "🔴 위험 회피 국면";
-    sub   = `${greenCount}개 지표 긍정 / \${yellowCount}개 중립 / \${redCount}개 부정 — 현금 비중 확대 및 리스크 축소 권고`;
+    sub   = `${greenCount}개 지표 긍정 / ${yellowCount}개 중립 / ${redCount}개 부정 — 현금 비중 확대 및 리스크 축소 권고`;
     circleColor = "#ef5350";
   }
 
@@ -646,8 +646,8 @@ function renderEval() {
   const evalText = document.getElementById("eval-text");
     evalText.innerHTML = signals.map(s => `
     <div class="et-row">
-      <span class="et-tag \${tagClass[s.sig]}">${tagText[s.sig]}</span>
-      \${s.comment}
+      <span class="et-tag ${tagClass[s.sig]}">${tagText[s.sig]}</span>
+      ${s.comment}
     </div>
   `).join("");
 
